@@ -22,52 +22,38 @@ time = data[0].values[:] * 1.1
 #time = data[0].index() * 1.1
 pc1 = data[1].values[:]
 
-window_length = 5  # SG 
-polyorder = 2 #SG
-peak_threshold = 15 #detect peaks with magnitude beyond this value
-trough_threshold = 15#detect troughs with magnitude beyond this value
-magnitude_threshold = 2#detect changes in trend by comparing the differnece between (i-1) and i vs (i+1) and i. if difference is more than 3*magnitude_threshold, it is a discontinuity
-
+window_length = 5
+polyorder = 2
+peak_threshold = 15
+trough_threshold = 15
+magnitude_threshold = 2
 folder = os.path.dirname(file_path)
 folder_path = os.path.join(folder, 'PC1_discontinuities/areas')
-#folder_path = os.path.join(folder, 'PC1_discontinuities/pH')
-#folder_path = os.path.join(folder, 'PC1_discontinuities/stark')
 
 os.makedirs(folder_path, exist_ok=True)
 filename = os.path.basename(folder) + "_PC1_with_discontinuities_areas"
-#filename = os.path.basename(folder) + "_PC1_with_discontinuities_pH"
-#filename = os.path.basename(folder) + "_PC1_with_discontinuities_stark"
 
 
-# Find the corresponding integrated areas file in the subfolder 1101_to_3999
+
 def find_integrated_areas_file(file_path):
     base_folder = os.path.dirname(file_path)
     subfolder = '1101_to_3999'
-    #subfolder = '1101_to_3999'
-    #subfolder = 'CO_peak'
     folder_path = os.path.join(base_folder, subfolder)
-    
-    # Search for the file ending with 'integrated_areas.csv'
+
     for file_name in os.listdir(folder_path):
         if file_name.endswith('integrated_areas.csv'):
-        #if file_name.endswith('1430_1368.csv'):
-        #if file_name.endswith('peak_shift.csv'):
-
             return os.path.join(folder_path, file_name)
     
-    raise FileNotFoundError("Integrated areas file not found") # in case
+    raise FileNotFoundError("Integrated areas file not found")
 
 
 #%%
 pc1_smoothed = savgol_filter(pc1, window_length=window_length, polyorder=polyorder)
-
 potential_change_times = np.array([100, 200, 300, 400, 500, 600, 700, 800, 900, 1000])
-
 def calculate_discontinuity_magnitudes(time, pc1_smoothed, discontinuities):
     magnitudes = []
     for i in discontinuities:
         if i > 0 and i < len(pc1_smoothed) - 1:
-            # Calculate the magnitude of the discontinuity
             magnitude_before = abs(pc1_smoothed[i] - pc1_smoothed[i-1])
             magnitude_after = abs(pc1_smoothed[i] - pc1_smoothed[i+1])
             magnitude = max(magnitude_before, magnitude_after)
@@ -90,7 +76,6 @@ def analyze_discontinuities(time, pc1_smoothed, peak_threshold=peak_threshold, t
         if diff_after >= 3 * diff_before:
             custom_discontinuities.append(i)
     
-    # Combine custom discontinuities with existing ones
     discontinuities = np.unique(np.concatenate((discontinuities, custom_discontinuities)))
     
     # Filter out discontinuities near potential change points
@@ -104,7 +89,7 @@ def analyze_discontinuities(time, pc1_smoothed, peak_threshold=peak_threshold, t
     # Calculate the magnitude of discontinuities
     magnitudes = calculate_discontinuity_magnitudes(time, pc1_smoothed, discontinuities)
     
-    # Filter out discontinuities with magnitude below the threshold
+    # Filter out
     valid_indices = magnitudes >= magnitude_threshold
     discontinuities = discontinuities[valid_indices]
     magnitudes = magnitudes[valid_indices]
@@ -217,13 +202,11 @@ def calculate_spearman_for_discontinuities(surrounding_values, surrounding_indic
     
     return spearman_coefficients
 
-# Call the function
 spearman_results = calculate_spearman_for_discontinuities(surrounding_values, surrounding_indices, integrated_areas_data)
 
 
 def plot_spearman_visualization(pca_values, integrated_values, discontinuity_time, output_folder):
-    # Ensure that pca_values and integrated_values have the same size
-    if len(pca_values) != len(integrated_values):
+    if len(pca_values) != len(integrated_values): # Ensure that pca_values and integrated_values have the same size
         min_len = min(len(pca_values), len(integrated_values))
         pca_values = pca_values[:min_len]
         integrated_values = integrated_values[:min_len]
@@ -283,7 +266,6 @@ def plot_spearman_visualization(pca_values, integrated_values, discontinuity_tim
     plt.close()
 
 def plot_spearman_visualization_with_arrows(pca_values, integrated_values, discontinuity_time, output_folder):
-    # Ensure that pca_values and integrated_values have the same size
     if len(pca_values) != len(integrated_values):
         min_len = min(len(pca_values), len(integrated_values))
         pca_values = pca_values[:min_len]
@@ -312,12 +294,10 @@ def plot_spearman_visualization_with_arrows(pca_values, integrated_values, disco
 
     spearman_corr, _ = spearmanr(pca_values, integrated_values)
 
-    # Final plot showing the formula and result
     formula_text = r'$\rho = 1 - \frac{6 \sum d_i^2}{n(n^2 - 1)}$'
     plt.text(0.05, 0.95, f'{formula_text}\nSpearman Correlation: {spearman_corr:.2f}', 
              transform=plt.gca().transAxes, fontsize=12, verticalalignment='top')
 
-    # Save the final plot
     plt.tight_layout()
     spearman_final_plot_path = os.path.join(output_folder, f'spearman_with_arrows_{discontinuity_time:.2f}.png')
     plt.savefig(spearman_final_plot_path, dpi=300)
@@ -327,7 +307,6 @@ def plot_spearman_visualization_with_arrows(pca_values, integrated_values, disco
 
 
 def explain_spearman_visualization(pca_values, integrated_values, discontinuity_time, output_folder):
-    # Ensure that pca_values and integrated_values have the same size
     if len(pca_values) != len(integrated_values):
         min_len = min(len(pca_values), len(integrated_values))
         pca_values = pca_values[:min_len]
@@ -360,12 +339,10 @@ def explain_spearman_visualization(pca_values, integrated_values, discontinuity_
                   head_width=0.1, head_length=0.05, fc='red', ec='red')
         plt.text(pca_values[i], integrated_values[i] + rank_diff * 0.025, f'd={rank_diff}', fontsize=9, ha='center', color='green')
 
-    # Display the formula and final Spearman Correlation
     formula_text = r'$\rho = 1 - \frac{6 \sum d_i^2}{n(n^2 - 1)}$'
     plt.text(0.05, 0.95, f'{formula_text}\nSpearman Correlation: {spearman_corr:.2f}', 
              transform=plt.gca().transAxes, fontsize=12, verticalalignment='top')
 
-    # Save the final plot
     plt.tight_layout()
     spearman_final_plot_path = os.path.join(output_folder, f'spearman_explanation_{discontinuity_time:.2f}.png')
     spearman_final_plot_path_svg = os.path.join(output_folder, f'spearman_explanation_{discontinuity_time:.2f}.svg')
@@ -390,7 +367,6 @@ for discontinuity, correlations in spearman_results.items():
     for peak, coeff in correlations.items():
         print(f"Peak {peak}: Spearman Coefficient = {coeff:.2f}")
 
-# Prepare the data for the heatmap plot
 def prepare_spearman_matrix(spearman_results):
     discontinuities = list(spearman_results.keys())
     peaks = list(next(iter(spearman_results.values())).keys())  # Assume all discontinuities have the same peaks
@@ -403,25 +379,24 @@ def prepare_spearman_matrix(spearman_results):
     return matrix, discontinuities, peaks
 
 
-# Generate the spearman matrix and labels
 discontinuity_times = [f"{time:.2f} s" for time in disc_times]
 matrix, discontinuities, peaks = prepare_spearman_matrix(spearman_results)
 
-plt.figure(figsize=(14, 8))  # Adjust the figure size for better visibility
+plt.figure(figsize=(14, 8))
 ax = sns.heatmap(matrix, cmap=cmap, annot=True, cbar=True, 
                  xticklabels=peaks, yticklabels=discontinuity_times, 
-                 linewidths=0.5, annot_kws={"size": 10},  # Annotation font size
-                 cbar_kws={"shrink": 0.8, "ticks": [-1, -0.5, 0, 0.5, 1]})  # Tweak color bar
+                 linewidths=0.5, annot_kws={"size": 10},
+                 cbar_kws={"shrink": 0.8, "ticks": [-1, -0.5, 0, 0.5, 1]})
 
-ax.set_xlabel('FTIR Peaks', fontsize=14, labelpad=20)  # Increase x-axis label size and add padding
-ax.set_ylabel('Discontinuities', fontsize=14, labelpad=10)  # Increase y-axis label size
-ax.set_title('Spearman Correlation Coefficients', fontsize=18, pad=20)  # Title size and padding
+ax.set_xlabel('FTIR Peaks', fontsize=14, labelpad=20)
+ax.set_ylabel('Discontinuities', fontsize=14, labelpad=10)
+ax.set_title('Spearman Correlation Coefficients', fontsize=18, pad=20)
 
-plt.xticks(rotation=45, ha='right', fontsize=10)  # Rotate x-axis labels for better readability
-plt.yticks(fontsize=10)  # Adjust y-axis label size
+plt.xticks(rotation=45, ha='right', fontsize=10)
+plt.yticks(fontsize=10)
 
 cbar = ax.collections[0].colorbar
-cbar.ax.tick_params(labelsize=10)  # Set color bar tick size
+cbar.ax.tick_params(labelsize=10)
 
 plt.tight_layout()
 
@@ -430,8 +405,8 @@ os.makedirs(folder, exist_ok=True)
 
 figure_filename_png = os.path.join(folder_path, 'Spearman_Correlation_Matrix.png')
 figure_filename_svg = os.path.join(folder_path, 'Spearman_Correlation_Matrix.svg')
-plt.savefig(figure_filename_png, dpi=300)  # Save as PNG with high resolution
-plt.savefig(figure_filename_svg, format='svg')  # Save as SVG
+plt.savefig(figure_filename_png, dpi=300)
+plt.savefig(figure_filename_svg, format='svg')
 plt.show()
 
 plt.show()
@@ -451,7 +426,6 @@ else:
     avg_magnitude = "No discontinuities"
     std_magnitude = "No discontinuities"
 
-# Create a metadata dictionary
 metadata = {
     'SG Filter Window Length': [window_length],
     'SG Filter Polyorder': [polyorder],
@@ -462,34 +436,18 @@ metadata = {
     'Standard Deviation of Discontinuity Magnitude': [std_magnitude]
 }
 
-# Convert the metadata dictionary to a DataFrame
+
 metadata_df = pd.DataFrame(metadata)
-
-# Calculate the column-wise averages for Spearman coefficients
 spearman_averages = spearman_df.mean()
-
-# Add the averages as a new row at the bottom of the Spearman DataFrame
 spearman_df.loc['Average'] = spearman_averages
-
-# Save everything to a CSV file
 csv_filename = os.path.join(folder_path, 'Spearman_Correlation_Report.csv')
-
-# Open a writer to concatenate all sections of the report
 with open(csv_filename, 'w') as f:
-    # Save the metadata
     metadata_df.to_csv(f, index=False)
-    
-    f.write("\n")  # Add some space between sections
-    
-    # Save the discontinuity information
+    f.write("\n") # adds space between sections
     discontinuity_info.to_csv(f, index=False)
-    
-    f.write("\n")  # Add some space between sections
-    
-    # Save the Spearman correlation matrix with the averages
+    f.write("\n")
     spearman_df.to_csv(f, index_label='Discontinuity Time (s)')
 
-# Print a message to confirm
 print(f"Spearman correlation report saved to {csv_filename}")
 
 #%% DTW from here downwards
@@ -541,7 +499,6 @@ def plot_dtw_matrices_and_path(dist_mat, cost_mat, path, x, y, output_folder, fi
     """
     Plot the distance matrix, cost matrix, and alignment path, and save the figures.
     """
-    # Plot the distance matrix and cost matrix
     fig, ax = plt.subplots(figsize=(10, 8))
     plt.subplot(121)
     plt.title("Distance Matrix")
@@ -597,25 +554,15 @@ def calculate_dtw_cost_with_normalization(surrounding_values, surrounding_indice
             integrated_values_normalized = normalize_sequence(integrated_values)
             
             if len(pca_values_normalized) == len(integrated_values_normalized):  # Ensure lengths match
-                # Create the distance matrix
-                dist_mat = np.abs(np.subtract.outer(pca_values_normalized, integrated_values_normalized))
-                
-                # Compute DTW alignment cost
-                path, cost_mat = dp(dist_mat)
-                
-                # Use non-normalized alignment cost (raw cost)
-                dtw_cost = cost_mat[-1, -1]
-                
-                # Store the non-normalized DTW cost
-                dtw_costs[f'Discontinuity_{i+1}'][peak] = dtw_cost
-
-                # Plot the matrices and alignment path
+                dist_mat = np.abs(np.subtract.outer(pca_values_normalized, integrated_values_normalized)) # Create the distance matrix
+                path, cost_mat = dp(dist_mat) # Compute DTW alignment cost
+                dtw_cost = cost_mat[-1, -1]  # Use non-normalized alignment cost (raw cost)
+                dtw_costs[f'Discontinuity_{i+1}'][peak] = dtw_cost # Store the non-normalized DTW cost
                 file_suffix = f"Disc_{i+1}_Peak_{peak.replace(' ', '_')}"
                 plot_dtw_matrices_and_path(dist_mat, cost_mat, path, pca_values_normalized, integrated_values_normalized, output_folder, file_suffix)
     
     return dtw_costs
 
-# Use this function in place of the original DTW cost calculation
 output_folder = os.path.join(folder_path, 'DTW_Plots')
 os.makedirs(output_folder, exist_ok=True)
 
@@ -633,7 +580,6 @@ def prepare_dtw_matrix(dtw_results):
     
     return matrix, discontinuities, peaks
 
-# Continue with the plotting and CSV saving logic as before
 
 # Generate the DTW matrix
 matrix, discontinuities, peaks = prepare_dtw_matrix(dtw_results)
