@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Sun Jan 12 12:12:33 2025
+
+@author: Rutvija
+"""
+
 
 import numpy as np
 import pandas as pd
@@ -16,13 +23,13 @@ mpl.rcParams['svg.fonttype'] = 'none'  # Do not convert fonts to paths
 
 
 file_paths = {
-    'df': r"..."
+    'df': r"E:\07012025\changing the discharge gap\21kV\1.0 mm_pellet\Exp._3_rep\CSV file\1 mm pellet_3.csv"
 }
 
-start_reciprocal_cm = 1101
-end_reciprocal_cm = 3999
-start_reciprocal_cm_bkg = 2500  
-end_reciprocal_cm_bkg = 3997 
+start_reciprocal_cm = 349
+end_reciprocal_cm = 1141
+start_reciprocal_cm_bkg = 350  
+end_reciprocal_cm_bkg = 1140 
 spectrum_to_plot_as_example = 600
 experiment_classification = '_08'
 liquid = 'H2O'
@@ -37,158 +44,30 @@ dfs = {}
 for key, file_path in file_paths.items():
     dfs[key] = pd.read_csv(file_path, header=None, skiprows=0) #original 955, others 0
 #    dfs[key] = dfs[key].T
-    dfs[key] = dfs[key].iloc[:, :911] #Activate for original
+    dfs[key] = dfs[key].iloc[:, :] #Activate for original
+
 #    dfs[key]=dfs[key][::-1] #activate for original
 #    dfs[key]=dfs[key].dropna(axis=1, how='any') # drop columns with NaN, relevant for the CVs, where the start of a new cycle may not coincide with end of previous
 
-    
 
 
-if liquid == 'D2O':
     
-    initial_amplitudes = [1,
-                          1,
-                              1,
-                              1,
-                              1,
-                                  1,
-                                      1,
-                                      1,
-                                          1,
-                                                1,
-                                                1,
-                                                    1,
-                                                    1,
-                                                        1,
-                                                        1,
-                                                            1,
-                                                            1,
-                                                                1,
-                                                                1,
-                                                                    1,
-                                                                    1,
-                                                                        1,
-                                                                        1,
-                                                                        1
-                                               ] 
-    initial_params = initial_amplitudes
-    
-    mean_values = [3400, 
-                   2950,
-                   2658,
-                   2600,
-                         2555,
-                         2470,
-                         2390,
-                         2367, 
-                        
-                                     2320,
-                                     2290,
-                                     2071, 
-                                     2050,
-                                     2000,
-                                                 1860,
-                                                 1700,
-                                                 1625,
-                                                 1560,
-                                                 1508,
-                                                     1460,
-                                                     1430,
-                                                     1365,
-                                                     1310,
-                                                         1204,
-                                                                1140
-                                                                
-                                                                
-                         ]
-    
-    
-    sigma_values = [100, 
-                    80,
-                    35,
-                    30,
-                        70,
-                        40,
-                        50,
-                        10,
-                                    10,
-                                    75,
-                                    10,
-                                    20,
-                                    30,
-                                                80,
-                                                30,
-                                                23,
-                                                30,
-                                                30,
-                                                    20,
-                                                    30,
-                                                    10,
-                                                    25,
-                                                        23,
-                                                            10
-                                      ]
+
 
 if liquid == 'H2O':
     
-    initial_amplitudes = [1,
-                          1,
-                              1,
-                              1,
-                              1,
-                                  1,
-                                  1,
-                                      1,
-                                      1,
-                                          1,
-                                                1,
-                                                1,
-                                                    1,
-                                                    1,
-                                                    1,
-                                                        1,
-                                                        1,
-                                                        1,
-                                                            1,
-                                                            1,
-                                                            1,
-                                                            1,
-                                                            1,
-                                                            1,
-                                                            1
+    initial_amplitudes = [1, 1, 1, 1, 1
                                                             
                                                ] 
     
-    mean_values = [3680,3520,   3360,3210,3100,    2870,2800,    2367,2350,2320,    2127,    2085,2078,2050,    1800,1700,1639,     1610, 1541,1508,    1430,1368,1270,1227,1170 
+    mean_values = [760, 751, 744, 736, 725  
                                       ]
     
     
-    sigma_values = [70, 
-                    100,
-                        100,
-                        80,
-                        100,
-                            80,
-                            80,
-                                10,
-                                10,
-                                10,
-                                    100,
-                                        30,
-                                        10,
-                                        30,
-                                            100,
-                                            30,
-                                            40, 
-                                                40,
-                                                40,
-                                                40,
-                                                    30,
-                                                    40,
-                                                    40,
-                                                    40,
-                                                    40
+    sigma_values = [2, 2, 2, 3, 2
                                       ]
+    
+    initial_params = initial_amplitudes
     
 
 
@@ -245,7 +124,7 @@ for key in dfs.keys():
     plt.plot(reciprocal_cm[start_index:end_index+1], fitted_curve, label='Fitted Curve')
     plt.xlabel('Wavenumbers (cm$^{-1}$)', fontsize=18)
     plt.ylabel('Intensity (a.u.)', fontsize=18)
-    plt.xlim(start_reciprocal_cm, end_reciprocal_cm)
+#    plt.xlim(start_reciprocal_cm, end_reciprocal_cm)
     plt.gca().invert_xaxis()
     plt.legend(fontsize=18, ncol=7)
     plt.title('Raw data', fontsize=18)
@@ -276,7 +155,7 @@ for key in dfs.keys():
 
 
 experiment_numbers = dfs[key].columns[1:]
-experiment_time = np.arange(len(experiment_numbers)) * 1.1
+experiment_time = np.arange(len(experiment_numbers)) * 0.1
 
 integrated_areas = {f'Peak {i}': [] for i in range(num_peaks)}
 
@@ -323,7 +202,7 @@ plt.legend(fontsize=18, ncol=3)
 plt.xlabel('Time (s)', fontsize=18)
 plt.ylabel('Integrated Area (a.u.)', fontsize=18)
 #plt.ylim(-6,5)
-plt.xlim(0,1000)
+#plt.xlim(0,1000)
 
 # Add vertical lines at the specified intersections
 intersections = [0,100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
@@ -378,4 +257,3 @@ svg_path = os.path.join(folder_path, f"{filename}.svg")
 plt.savefig(png_path)
 plt.savefig(svg_path, format='svg', transparent=True)
 plt.show()
-
